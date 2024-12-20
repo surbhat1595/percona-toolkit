@@ -396,9 +396,14 @@ build_rpm(){
     cd $WORKDIR
     RHEL=$(rpm --eval %rhel)
     ARCH=$(echo $(uname -m) | sed -e 's:i686:i386:g')
+    if [ x"$ARCH" = "xaarch64" ]; then
+        sed -i "s/@@ARCHITECTURE@@/aarch64/" $WORKDIR/rpmbuild/SPECS/percona-toolkit.spec
+    else
+        sed -i "s/@@ARCHITECTURE@@/x86_64/" $WORKDIR/rpmbuild/SPECS/percona-toolkit.spec
+    fi
     echo "RHEL=${RHEL}" >> percona-toolkit.properties
     echo "ARCH=${ARCH}" >> percona-toolkit.properties
-    rpmbuild --target=x86_64 --define "version $VERSION" --define "VERSION $VERSION" --define "dist .el${RHEL}" --define "release $RPM_RELEASE.el${RHEL}" --define "_topdir ${WORKDIR}/rpmbuild" --rebuild rpmbuild/SRPMS/${SRC_RPM}
+    rpmbuild --target=${ARCH} --define "version $VERSION" --define "VERSION $VERSION" --define "dist .el${RHEL}" --define "release $RPM_RELEASE.el${RHEL}" --define "_topdir ${WORKDIR}/rpmbuild" --rebuild rpmbuild/SRPMS/${SRC_RPM}
 
     return_code=$?
     if [ $return_code != 0 ]; then
